@@ -27,39 +27,57 @@
             width: 95%;
             max-width: 1200px;
             aspect-ratio: 16 / 9; /* Maintain aspect ratio */
-            display: flex;
-            flex-direction: column;
+            display: grid; /* Use grid for main layout */
+            grid-template-columns: 1fr 2fr; /* Store on left, customer/checkout on right */
             overflow: hidden;
             position: relative;
         }
 
         /* Game Areas */
         .store-area {
-            flex-basis: 30%;
             padding: 20px;
             background-color: #f8bbd0; /* Medium pink */
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px; /* Increased gap for items */
             justify-content: center;
             align-content: flex-start;
-            border-bottom: 5px solid #d81b60; /* Darker pink border */
+            border-right: 5px solid #d81b60; /* Darker pink border on right */
             overflow-y: auto; /* Scroll for many items */
         }
-        .customer-area {
-            flex-basis: 70%;
+
+        .customer-checkout-area {
+            display: flex;
+            flex-direction: column;
+            background-color: #e0f2f7; /* Light blue */
+        }
+
+        .customer-fitting-area {
+            flex-grow: 1; /* Takes remaining space */
             display: flex;
             justify-content: center;
             align-items: flex-end; /* Customer at bottom */
-            background-color: #e0f2f7; /* Light blue */
             position: relative;
             overflow: hidden;
+            padding-bottom: 20px; /* Space above checkout */
+        }
+
+        .checkout-area {
+            height: 120px; /* Fixed height for checkout */
+            background-color: #c8e6c9; /* Light green for checkout counter */
+            border-top: 5px solid #4caf50; /* Green border */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            color: #333;
+            font-weight: bold;
         }
 
         /* Draggable items */
         .draggable-item {
-            width: 80px;
-            height: 80px;
+            width: 90px; /* Slightly larger items */
+            height: 90px;
             background-color: #fff;
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -71,10 +89,12 @@
             user-select: none;
             position: relative;
             transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
-            font-size: 0.8em;
+            font-size: 0.9em; /* Adjusted font size */
             text-align: center;
             padding: 5px;
             pointer-events: auto; /* Default */
+            /* Added shelf-like appearance */
+            border-bottom: 3px solid #ccc;
         }
         .draggable-item.disabled {
             pointer-events: none; /* Disable dragging */
@@ -89,7 +109,7 @@
             z-index: 100; /* Bring dragged item to front */
         }
         .item-icon {
-            font-size: 2.5em;
+            font-size: 3em; /* Larger icons */
             margin-bottom: 5px;
         }
         .item-price {
@@ -100,11 +120,11 @@
         /* Customer */
         .customer {
             position: absolute;
-            bottom: -100px; /* Start off-screen */
+            bottom: -150px; /* Start further off-screen */
             left: 50%;
             transform: translateX(-50%);
-            width: 150px;
-            height: 250px; /* Adjust height for full body */
+            width: 180px; /* Larger customer */
+            height: 300px; /* Adjust height for full body */
             background-color: #fce4ec; /* Skin tone */
             border-radius: 50% 50% 0 0 / 60% 60% 0 0; /* Head shape */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -113,7 +133,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding-top: 20px;
+            padding-top: 25px; /* Adjusted padding */
             z-index: 10;
         }
 
@@ -122,21 +142,21 @@
         }
 
         .customer-body {
-            width: 100px;
-            height: 150px;
+            width: 120px; /* Larger body */
+            height: 180px;
             background-color: #ffd1dc; /* Light pink for body */
-            border-radius: 20px;
+            border-radius: 25px;
             position: absolute;
             bottom: 0;
         }
 
         .customer-head {
-            width: 80px;
-            height: 80px;
+            width: 100px; /* Larger head */
+            height: 100px;
             background-color: #fce4ec; /* Skin tone for head */
             border-radius: 50%;
             position: relative;
-            top: -20px; /* Position above body */
+            top: -25px; /* Position above body */
             z-index: 1;
         }
 
@@ -145,18 +165,18 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 3em;
+            font-size: 3.5em; /* Larger expression */
         }
 
         .speech-bubble {
             position: absolute;
-            top: -70px;
-            right: -80px;
+            top: -90px; /* Adjusted position */
+            right: -100px; /* Adjusted position */
             background-color: #fff;
             border: 2px solid #333;
             border-radius: 15px;
             padding: 10px 15px;
-            font-size: 1.1em;
+            font-size: 1.2em; /* Slightly larger font */
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             transform: scale(0); /* Start hidden */
             transform-origin: bottom left;
@@ -199,20 +219,14 @@
             margin-bottom: 0;
         }
         .speech-bubble-item .emoji {
-            font-size: 1.5em;
+            font-size: 1.8em; /* Larger emoji in bubble */
             margin-right: 8px;
-        }
-
-        @keyframes pop-in {
-            0% { transform: scale(0); opacity: 0; }
-            80% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
         }
 
         /* Phonics Challenge */
         .phonics-challenge {
             position: absolute;
-            bottom: 20px;
+            bottom: 140px; /* Positioned above checkout area */
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -230,7 +244,7 @@
             background-color: #fff;
             border-radius: 10px;
             padding: 10px 20px;
-            font-size: 2em;
+            font-size: 2.2em; /* Larger font */
             font-weight: bold;
             color: #d81b60;
             margin-bottom: 15px;
@@ -238,18 +252,18 @@
         }
         .phonics-letters {
             display: flex;
-            gap: 10px;
+            gap: 12px; /* Increased gap */
         }
         .phonics-letter-button {
             background-color: #d81b60;
             color: white;
-            width: 50px;
-            height: 50px;
+            width: 55px; /* Slightly larger buttons */
+            height: 55px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.8em;
+            font-size: 2em; /* Larger font */
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
@@ -266,27 +280,28 @@
         /* Customer's current outfit / shopping cart */
         .customer-outfit-container {
             position: absolute;
-            bottom: 5px; /* Position at the bottom of the customer body */
+            top: 50%; /* Position roughly over the customer's body center */
             left: 50%;
-            transform: translateX(-50%);
-            width: 120px; /* Wider for multiple items */
-            height: 100px;
+            transform: translate(-50%, -50%);
+            width: 150px; /* Wider for multiple items */
+            min-height: 100px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-items: flex-end; /* Items stack from bottom */
+            align-items: center;
             gap: 5px;
-            background-color: rgba(255,255,255,0.3); /* Slightly transparent background for cart */
+            background-color: rgba(255,255,255,0.4); /* Slightly transparent background for cart */
             border-radius: 15px;
             padding: 5px;
             pointer-events: none; /* Don't interfere with dragging */
             overflow-y: auto; /* Allow scrolling if many items */
             box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+            transition: all 0.3s ease-in-out;
         }
         .customer-outfit-item {
-            width: 50px;
-            height: 50px;
-            font-size: 2.5em;
+            width: 60px; /* Larger items in outfit container */
+            height: 60px;
+            font-size: 3em; /* Larger emoji */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -542,28 +557,36 @@
             <!-- Items will be dynamically loaded here by JavaScript -->
         </div>
 
-        <!-- Customer Area (Drop Zone) -->
-        <div id="customer-area" class="customer-area">
-            <div id="customer" class="customer">
-                <div class="customer-head">
-                    <div id="customer-expression" class="customer-expression">😊</div>
-                </div>
-                <div class="customer-body">
-                    <div id="customer-outfit-container" class="customer-outfit-container">
-                        <!-- Collected items will be placed here -->
+        <!-- Customer & Checkout Area -->
+        <div class="customer-checkout-area">
+            <!-- Customer Fitting Area -->
+            <div id="customer-fitting-area" class="customer-fitting-area">
+                <div id="customer" class="customer">
+                    <div class="customer-head">
+                        <div id="customer-expression" class="customer-expression">😊</div>
+                    </div>
+                    <div class="customer-body">
+                        <div id="customer-outfit-container" class="customer-outfit-container">
+                            <!-- Collected items will be placed here -->
+                        </div>
+                    </div>
+                    <div id="speech-bubble" class="speech-bubble hidden">
+                        <div id="speech-text-wrapper"></div>
                     </div>
                 </div>
-                <div id="speech-bubble" class="speech-bubble hidden">
-                    <div id="speech-text-wrapper"></div>
+                <!-- Phonics Challenge -->
+                <div id="phonics-challenge" class="phonics-challenge">
+                    <div id="phonics-word-display" class="phonics-word-display"></div>
+                    <div id="phonics-letters" class="phonics-letters"></div>
                 </div>
+                <!-- Feedback Overlay -->
+                <div id="feedback-overlay" class="feedback-overlay rounded-[20px]"></div>
             </div>
-            <!-- Phonics Challenge -->
-            <div id="phonics-challenge" class="phonics-challenge">
-                <div id="phonics-word-display" class="phonics-word-display"></div>
-                <div id="phonics-letters" class="phonics-letters"></div>
+
+            <!-- Checkout Counter Area -->
+            <div id="checkout-area" class="checkout-area">
+                Checkout Counter
             </div>
-            <!-- Feedback Overlay -->
-            <div id="feedback-overlay" class="feedback-overlay rounded-[20px]"></div>
         </div>
 
         <!-- Cash Register Modal -->
@@ -620,15 +643,15 @@
         const startScreen = document.getElementById('start-screen');
         const startButton = document.getElementById('start-button');
         const storeArea = document.getElementById('store-area');
-        const customerArea = document.getElementById('customer-area');
+        const customerArea = document.getElementById('customer-fitting-area'); // Renamed to fitting area
         const customerEl = document.getElementById('customer');
         const customerExpressionEl = document.getElementById('customer-expression');
         const customerOutfitContainer = document.getElementById('customer-outfit-container');
         const speechBubble = document.getElementById('speech-bubble');
-        const speechTextWrapper = document.getElementById('speech-text-wrapper'); // New element for speech text
+        const speechTextWrapper = document.getElementById('speech-text-wrapper');
         const modalOverlay = document.getElementById('modal-overlay');
         const costDisplay = document.getElementById('cost-display');
-        const itemsPurchasedDisplay = document.getElementById('items-purchased-display'); // New for listing items
+        const itemsPurchasedDisplay = document.getElementById('items-purchased-display');
         const paymentInput = document.getElementById('payment-input');
         const changeDisplay = document.getElementById('change-display');
         const confirmPaymentButton = document.getElementById('confirm-payment-button');
@@ -640,6 +663,7 @@
         const phonicsChallenge = document.getElementById('phonics-challenge');
         const phonicsWordDisplay = document.getElementById('phonics-word-display');
         const phonicsLettersContainer = document.getElementById('phonics-letters');
+        const checkoutArea = document.getElementById('checkout-area'); // New element
 
         // Game Data (Items, Customers)
         const items = [
