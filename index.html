@@ -45,12 +45,14 @@
             border-right: 5px solid #d81b60; /* Darker pink border on right */
             overflow-y: auto; /* Scroll for many items */
             position: relative; /* For the title */
+            padding-top: 60px; /* Space for title */
         }
         .store-area-title {
             position: absolute;
             top: 15px;
-            width: 100%;
+            width: calc(100% - 40px); /* Account for padding */
             text-align: center;
+            left: 20px;
         }
 
 
@@ -68,6 +70,7 @@
             position: relative;
             overflow: hidden;
             padding-bottom: 20px; /* Space above checkout */
+            padding-top: 60px; /* Space for title */
         }
         .fitting-area-title {
             position: absolute;
@@ -88,6 +91,7 @@
             color: #333;
             font-weight: bold;
             position: relative; /* For the title */
+            padding-top: 20px; /* Space for title */
         }
         .checkout-area-title {
             position: absolute;
@@ -189,30 +193,36 @@
             font-size: 3.5em; /* Larger expression */
         }
 
+        /* Adjusted Speech Bubble positioning and z-index */
         .speech-bubble {
             position: absolute;
-            top: -90px; /* Adjusted position */
-            right: -100px; /* Adjusted position */
+            top: -120px; /* Adjusted to be higher above customer head */
+            left: 50%; /* Center relative to customer */
+            transform: translateX(-50%); /* Center horizontally */
             background-color: #fff;
             border: 2px solid #333;
             border-radius: 15px;
             padding: 10px 15px;
-            font-size: 1.2em; /* Slightly larger font */
+            font-size: 1.2em;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transform: scale(0); /* Start hidden */
-            transform-origin: bottom left;
+            transform: translateX(-50%) scale(0); /* Combined with initial scale 0 */
+            transform-origin: bottom center; /* Pop in from bottom center */
             animation: pop-in 0.3s forwards ease-out;
-            z-index: 20;
+            z-index: 35; /* Increased z-index to be above phonics */
             display: flex;
-            flex-direction: column; /* Allow multiple lines */
+            flex-direction: column;
             align-items: flex-start;
+            min-width: 150px; /* Ensure a minimum width for readability */
+            white-space: normal; /* Allow text to wrap */
+            text-align: left;
         }
 
         .speech-bubble::after {
             content: '';
             position: absolute;
             bottom: -10px;
-            left: 20px;
+            left: 50%;
+            transform: translateX(-50%); /* Center the pointer */
             width: 0;
             height: 0;
             border-left: 10px solid transparent;
@@ -223,7 +233,8 @@
             content: '';
             position: absolute;
             bottom: -8px;
-            left: 20px;
+            left: 50%;
+            transform: translateX(-50%); /* Center the pointer */
             width: 0;
             height: 0;
             border-left: 10px solid transparent;
@@ -231,7 +242,7 @@
             border-top: 10px solid #fff;
             z-index: 2;
         }
-        .speech-bubble-item-request { /* Renamed for clarity */
+        .speech-bubble-item-request {
             display: flex;
             align-items: center;
             margin-bottom: 5px;
@@ -240,8 +251,14 @@
             margin-bottom: 0;
         }
         .speech-bubble-item-request .emoji {
-            font-size: 1.8em; /* Larger emoji in bubble */
+            font-size: 1.8em;
             margin-right: 8px;
+        }
+
+        @keyframes pop-in {
+            0% { transform: translateX(-50%) scale(0); opacity: 0; }
+            80% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
         }
 
         /* Phonics Challenge */
@@ -252,7 +269,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 25; /* Above customer but below modal */
+            z-index: 25; /* Below speech bubble (35) but above customer (10) */
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease-out;
@@ -265,7 +282,7 @@
             background-color: #fff;
             border-radius: 10px;
             padding: 10px 20px;
-            font-size: 2.2em; /* Larger font */
+            font-size: 2.2em;
             font-weight: bold;
             color: #d81b60;
             margin-bottom: 15px;
@@ -273,18 +290,18 @@
         }
         .phonics-letters {
             display: flex;
-            gap: 12px; /* Increased gap */
+            gap: 12px;
         }
         .phonics-letter-button {
             background-color: #d81b60;
             color: white;
-            width: 55px; /* Slightly larger buttons */
+            width: 55px;
             height: 55px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2em; /* Larger font */
+            font-size: 2em;
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
@@ -298,11 +315,11 @@
             transform: translateY(0);
         }
 
-        /* NEW: Styles for items directly dressed on the customer */
+        /* Styles for items directly dressed on the customer */
         .customer-dressed-item {
             position: absolute;
             font-size: 3.5em; /* Default size for dressed item emoji */
-            z-index: 12; /* Above customer body, below speech bubble */
+            z-index: 12; /* Above customer body (10), below speech bubble (35) and phonics (25) */
             pointer-events: none; /* Not interactive */
             transition: all 0.4s ease-out; /* Smooth placement transition */
             opacity: 0; /* Start hidden for animation */
@@ -316,55 +333,55 @@
 
         /* Positioning for each clothing type on the customer */
         .customer-dressed-item.hat {
-            top: 50px; /* Adjust based on customer head position */
+            top: 50px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 4em;
         }
         .customer-dressed-item.dress {
-            top: 100px; /* Overlap body for full dress */
+            top: 100px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 6em; /* Make dress larger to cover more */
+            font-size: 6em;
         }
         .customer-dressed-item.shirt {
-            top: 120px; /* Overlap upper body */
+            top: 120px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 5em;
         }
         .customer-dressed-item.sweater {
-            top: 110px; /* Overlap upper body, slightly higher than shirt */
+            top: 110px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 5.5em;
         }
         .customer-dressed-item.pants {
-            top: 180px; /* Overlap lower body */
+            top: 180px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 4.5em;
         }
         .customer-dressed-item.skirt {
-            top: 170px; /* Overlap lower body, slightly higher than pants */
+            top: 170px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 5em;
         }
         .customer-dressed-item.shoes {
-            bottom: 5px; /* At the bottom of the customer */
+            bottom: 5px;
             left: 50%;
             transform: translateX(-50%);
-            width: 80%; /* To give space for two shoes */
-            display: flex; /* Use flex to put two emojis side-by-side */
-            justify-content: space-around; /* Distribute shoes */
-            font-size: 3em; /* Size of individual shoe emoji */
+            width: 80%;
+            display: flex;
+            justify-content: space-around;
+            font-size: 3em;
         }
         /* For shoes and socks, make them appear as two */
         .customer-dressed-item.shoes::before,
         .customer-dressed-item.socks::before {
-            content: attr(data-emoji); /* Use data attribute for content */
-            font-size: 1em; /* Inherit font size from parent */
+            content: attr(data-emoji);
+            font-size: 1em;
         }
         .customer-dressed-item.shoes::after,
         .customer-dressed-item.socks::after {
@@ -372,7 +389,7 @@
             font-size: 1em;
         }
         .customer-dressed-item.socks {
-            bottom: 25px; /* Slightly above shoes */
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
             width: 70%;
@@ -393,7 +410,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 50;
+            z-index: 50; /* Above all game elements except message box */
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease-out;
@@ -459,6 +476,8 @@
             border-radius: 10px;
             outline: none;
             transition: border-color 0.2s;
+            pointer-events: none; /* Make input non-editable by keyboard */
+            background-color: #f0f0f0; /* Gray out input to show it's auto-filled */
         }
         .input-group input:focus {
             border-color: #d81b60;
@@ -488,6 +507,74 @@
             transform: translateY(0);
         }
 
+        /* Money Selection Area */
+        .money-selection-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e0f2f7; /* Light blue background for money */
+            border-radius: 10px;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .money-button {
+            background-color: #4CAF50; /* Green for money */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            min-width: 60px; /* Ensure consistent width */
+            text-align: center;
+        }
+        .money-button.coin {
+            background-color: #FFD700; /* Gold for coins */
+            color: #333;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1em;
+        }
+        .money-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .money-button:active {
+            transform: translateY(0);
+        }
+        .money-button.coin:hover {
+            background-color: #E6C200;
+        }
+        .money-button.bill:hover {
+            background-color: #45a049;
+        }
+        .clear-payment-button {
+            background-color: #f44336; /* Red for clear */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+        }
+        .clear-payment-button:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+
         /* Game UI */
         .game-ui {
             position: absolute;
@@ -501,7 +588,7 @@
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            z-index: 30;
+            z-index: 30; /* Below modals/messages, above main game elements */
         }
         .ui-item {
             font-size: 1.3em;
@@ -529,7 +616,7 @@
             font-size: 2em;
             font-weight: bold;
             text-align: center;
-            z-index: 60;
+            z-index: 60; /* Highest z-index for critical messages */
             animation: pop-in 0.4s forwards ease-out;
         }
         .message-box.hidden {
@@ -548,7 +635,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 100; /* Always on top initially */
             transition: opacity 0.5s ease-out;
         }
         .start-screen.hidden {
@@ -594,7 +681,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease-in-out;
-            z-index: 40;
+            z-index: 40; /* Above dressed items (12) and customer (10), below modals (50) */
         }
 
         .feedback-overlay.correct {
@@ -670,11 +757,15 @@
                 <div id="items-purchased-display" class="text-sm text-gray-600 mt-2 mb-4"></div>
                 <div class="input-group">
                     <label for="payment-input">Customer Paid:</label>
-                    <input type="number" id="payment-input" placeholder="0">
+                    <input type="number" id="payment-input" placeholder="0" readonly> <!-- Readonly to prevent manual typing -->
                 </div>
                 <div class="register-display mt-4">
                     <span>Change Due:</span> <strong>$ <span id="change-display">0.00</span></strong>
                 </div>
+                <div id="money-selection-area" class="money-selection-area">
+                    <!-- Money buttons will be loaded here -->
+                </div>
+                <button id="clear-payment-button" class="clear-payment-button">Clear Payment</button>
                 <div class="modal-buttons">
                     <button id="confirm-payment-button" class="modal-button">Confirm</button>
                     <button id="cancel-payment-button" class="modal-button bg-gray-500 hover:bg-gray-700">Cancel</button>
@@ -702,6 +793,7 @@
         let phonicsWord = '';
         let hiddenPhonicsLetter = '';
         let hiddenPhonicsIndex = -1;
+        let currentPaymentAmount = 0; // New: Tracks amount added by money buttons
 
         // Tone.js Synths for sound effects
         let correctSynth = new Tone.Synth().toDestination();
@@ -714,12 +806,13 @@
         const startScreen = document.getElementById('start-screen');
         const startButton = document.getElementById('start-button');
         const storeArea = document.getElementById('store-area');
-        const customerFittingArea = document.getElementById('customer-fitting-area'); // Corrected variable name
+        const customerFittingArea = document.getElementById('customer-fitting-area');
         const customerEl = document.getElementById('customer');
         const customerExpressionEl = document.getElementById('customer-expression');
         const speechBubble = document.getElementById('speech-bubble');
         const speechTextWrapper = document.getElementById('speech-text-wrapper');
         const modalOverlay = document.getElementById('modal-overlay');
+        const cashRegisterModal = document.querySelector('.cash-register-modal'); // Get modal for money area insertion
         const costDisplay = document.getElementById('cost-display');
         const itemsPurchasedDisplay = document.getElementById('items-purchased-display');
         const paymentInput = document.getElementById('payment-input');
@@ -734,6 +827,8 @@
         const phonicsWordDisplay = document.getElementById('phonics-word-display');
         const phonicsLettersContainer = document.getElementById('phonics-letters');
         const checkoutArea = document.getElementById('checkout-area');
+        const moneySelectionArea = document.getElementById('money-selection-area'); // New: Money selection area
+        const clearPaymentButton = document.getElementById('clear-payment-button'); // New: Clear payment button
 
         // Game Data (Items, Customers)
         const items = [
@@ -749,10 +844,22 @@
 
         const customers = [
             { name: 'Alice', requests: ['dress', 'shoes'], expression: '😀', color: '#ffb3ba' },
-            { name: 'Bob', requests: ['shirt', 'pants', 'hat'], expression: '😊', color: '#bae1ff' },
+            { name: 'Bob', requests: ['shirt', 'pants', 'hat'], expression: '�', color: '#bae1ff' },
             { name: 'Charlie', requests: ['sweater', 'socks'], expression: '😇', color: '#baffc9' },
             { name: 'Diana', requests: ['skirt', 'shirt'], expression: '😁', color: '#ffdfba' },
             { name: 'Eve', requests: ['dress', 'hat', 'socks'], expression: '🙂', color: '#c9baff' }
+        ];
+
+        // New: Money denominations for payment selection
+        const moneyDenominations = [
+            { value: 0.01, label: '1¢', type: 'coin' },
+            { value: 0.05, label: '5¢', type: 'coin' },
+            { value: 0.10, label: '10¢', type: 'coin' },
+            { value: 0.25, label: '25¢', type: 'coin' },
+            { value: 1.00, label: '$1', type: 'bill' },
+            { value: 5.00, label: '$5', type: 'bill' },
+            { value: 10.00, label: '$10', type: 'bill' },
+            { value: 20.00, label: '$20', type: 'bill' }
         ];
 
         // --- Utility Functions ---
@@ -1034,6 +1141,8 @@
             customerEl.classList.add('active');
             setTimeout(() => {
                 // Decide if this customer gets a phonics challenge
+                // Ensure customer is fully visible before phonics/speech bubble
+                // Added a small delay for customer to slide in
                 const applyPhonics = Math.random() < 0.7; // 70% chance for phonics
                 if (applyPhonics && requestedItems.length === 1) { // Only apply to single item requests for simplicity
                     console.log('spawnNewCustomer: Setting up phonics challenge.');
@@ -1043,7 +1152,7 @@
                     updateCustomerRequestDisplay();
                     enableAllDraggableItems(); // Enable dragging if no phonics
                 }
-            }, 800); // Delay speech bubble until customer is in place
+            }, 800); // Delay speech bubble/phonics until customer is in place
         }
 
         function updateCustomerRequestDisplay() {
@@ -1057,12 +1166,17 @@
                 return;
             }
 
-            remainingRequests.forEach((item, index) => {
-                const itemSpan = document.createElement('span');
-                itemSpan.classList.add('speech-bubble-item-request');
-                itemSpan.innerHTML = `<span class="emoji">${item.emoji}</span>${item.name}`;
-                speechTextWrapper.appendChild(itemSpan);
-            });
+            // Construct the speech bubble content
+            let speechContent = 'I need ';
+            if (remainingRequests.length === 1) {
+                speechContent += `${remainingRequests[0].name}.`;
+            } else {
+                const names = remainingRequests.map(item => item.name);
+                const last = names.pop();
+                speechContent += `${names.join(', ')} and ${last}.`;
+            }
+            speechTextWrapper.textContent = speechContent; // Set text content directly for simpler requests
+            
             showSpeechBubble();
         }
 
@@ -1178,55 +1292,96 @@
             
             itemsPurchasedDisplay.innerHTML = 'Items: ' + customerCart.map(item => item.name).join(', ');
 
-            paymentInput.value = '';
+            currentPaymentAmount = 0; // Reset payment amount
+            paymentInput.value = currentPaymentAmount.toFixed(2); // Display initial 0.00
             changeDisplay.textContent = '0.00';
             modalOverlay.classList.add('active');
-            paymentInput.focus();
+            
+            renderMoneyButtons(); // NEW: Render money buttons when modal opens
+            addMoneyButtonListeners(); // NEW: Add event listeners
+            clearPaymentButton.addEventListener('click', clearPayment); // NEW: Clear button listener
+            
+            // Payment input is now readonly and updated by button clicks
+            // No need to focus on it manually for typing.
         }
 
-        paymentInput.addEventListener('input', () => {
-            const cost = parseFloat(costDisplay.textContent);
-            const paid = parseFloat(paymentInput.value);
-            if (!isNaN(paid)) {
-                const change = paid - cost;
-                changeDisplay.textContent = Math.max(0, change).toFixed(2);
-            } else {
-                changeDisplay.textContent = '0.00';
+        function renderMoneyButtons() {
+            console.log('renderMoneyButtons: Rendering money buttons.');
+            moneySelectionArea.innerHTML = ''; // Clear previous buttons
+            moneyDenominations.forEach(denom => {
+                const button = document.createElement('button');
+                button.classList.add('money-button', denom.type);
+                button.setAttribute('data-value', denom.value);
+                button.textContent = denom.label;
+                moneySelectionArea.appendChild(button);
+            });
+        }
+
+        function addMoneyButtonListeners() {
+            console.log('addMoneyButtonListeners: Adding money button listeners.');
+            document.querySelectorAll('.money-button').forEach(button => {
+                button.onclick = null; // Clear existing listeners to prevent duplicates
+                button.addEventListener('click', handleMoneyButtonClick);
+            });
+        }
+
+        function handleMoneyButtonClick(e) {
+            const value = parseFloat(e.target.getAttribute('data-value'));
+            if (!isNaN(value)) {
+                currentPaymentAmount += value;
+                paymentInput.value = currentPaymentAmount.toFixed(2);
+                updateChangeDisplay();
+                coinSynth.triggerAttackRelease("C6", "16n"); // A smaller coin sound
             }
-        });
+        }
+
+        function clearPayment() {
+            console.log('clearPayment: Clearing payment.');
+            currentPaymentAmount = 0;
+            paymentInput.value = currentPaymentAmount.toFixed(2);
+            updateChangeDisplay();
+        }
+
+        function updateChangeDisplay() {
+            const cost = parseFloat(costDisplay.textContent);
+            const paid = currentPaymentAmount; // Use the sum from money buttons
+            const change = paid - cost;
+            changeDisplay.textContent = Math.max(0, change).toFixed(2);
+        }
+
+        paymentInput.addEventListener('input', updateChangeDisplay); // Keep this listener, though input is now readonly
 
         confirmPaymentButton.addEventListener('click', () => {
             console.log('Confirm payment button clicked.');
             const cost = parseFloat(costDisplay.textContent);
-            const paid = parseFloat(paymentInput.value);
+            const paid = currentPaymentAmount; // Use currentPaymentAmount for validation
 
-            if (isNaN(paid) || paid < cost) {
-                showMessage('Not enough money! Please try again.', 2000);
+            if (paid < cost) {
+                showMessage('Not enough money! Please add more.', 2000);
                 showFeedbackOverlay('incorrect');
                 incorrectSynth.triggerAttackRelease("C3", "8n");
-                paymentInput.focus();
                 return;
             }
 
             const change = paid - cost;
-            const displayedChange = parseFloat(changeDisplay.textContent);
-
-            if (Math.abs(change - displayedChange) < 0.01) {
+            // No need to compare with displayedChange anymore since input is automatic.
+            // Just compare against a small epsilon for floating point issues.
+            if (change >= 0) { // If the customer paid enough or more
                 console.log('Payment correct. Processing transaction.');
                 currentMoney += cost;
                 score += requestedItems.length;
                 updateUI();
                 showMessage(`Great job! Your change is $${change.toFixed(2)}`, 2000);
                 coinSynth.triggerAttackRelease("F5", "8n");
-                customerExpressionEl.textContent = '�';
+                customerExpressionEl.textContent = '😁';
                 modalOverlay.classList.remove('active');
                 setTimeout(customerLeaves, 2500);
             } else {
-                console.log('Payment incorrect. Try again.');
-                showMessage('Hmm, that change isn\'t quite right. Try again!', 2000);
+                console.log('Payment calculation issue - should not happen if paid >= cost.');
+                // This branch should ideally not be hit if paid < cost check works.
+                showMessage('Hmm, something went wrong with the change calculation.', 2000);
                 showFeedbackOverlay('incorrect');
                 incorrectSynth.triggerAttackRelease("C3", "8n");
-                paymentInput.focus();
             }
         });
 
