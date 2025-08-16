@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boutique Boss: Dress & Learn!</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fce4ec; /* Light pink background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+        .game-container {
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9; /* Maintain aspect ratio */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Game Areas */
+        .store-area {
+            flex-basis: 30%;
+            padding: 20px;
+            background-color: #f8bbd0; /* Medium pink */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-content: flex-start;
+            border-bottom: 5px solid #d81b60; /* Darker pink border */
+            overflow-y: auto; /* Scroll for many items */
+        }
+        .customer-area {
+            flex-basis: 70%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* Customer at bottom */
+            background-color: #e0f2f7; /* Light blue */
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Draggable items */
+        .draggable-item {
+            width: 80px;
+            height: 80px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            user-select: none;
+            position: relative;
+            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+            font-size: 0.8em;
+            text-align: center;
+            padding: 5px;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+            z-index: 100; /* Bring dragged item to front */
+        }
+        .item-icon {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+        .item-price {
+            font-weight: bold;
+            color: #d81b60;
+        }
+
+        /* Customer */
+        .customer {
+            position: absolute;
+            bottom: -100px; /* Start off-screen */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 250px; /* Adjust height for full body */
+            background-color: #fce4ec; /* Skin tone */
+            border-radius: 50% 50% 0 0 / 60% 60% 0 0; /* Head shape */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: bottom 0.8s ease-out, transform 0.5s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 20px;
+            z-index: 10;
+        }
+
+        .customer.active {
+            bottom: 0; /* Slide in */
+        }
+
+        .customer-body {
+            width: 100px;
+            height: 150px;
+            background-color: #ffd1dc; /* Light pink for body */
+            border-radius: 20px;
+            position: absolute;
+            bottom: 0;
+        }
+
+        .customer-head {
+            width: 80px;
+            height: 80px;
+            background-color: #fce4ec; /* Skin tone for head */
+            border-radius: 50%;
+            position: relative;
+            top: -20px; /* Position above body */
+            z-index: 1;
+        }
+
+        .customer-expression {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+        }
+
+        .speech-bubble {
+            position: absolute;
+            top: -70px;
+            right: -80px;
+            background-color: #fff;
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 10px 15px;
+            font-size: 1.1em;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transform: scale(0); /* Start hidden */
+            transform-origin: bottom left;
+            animation: pop-in 0.3s forwards ease-out;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #333;
+        }
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #fff;
+            z-index: 2;
+        }
+        .speech-bubble-icon {
+            font-size: 1.5em;
+            margin-left: 8px;
+        }
+
+        @keyframes pop-in {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Cash Register Modal */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .cash-register-modal {
+            background-color: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            transform: translateY(-50px);
+            opacity: 0;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            position: relative;
+        }
+        .modal-overlay.active .cash-register-modal {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .cash-register-modal h2 {
+            font-size: 2em;
+            color: #d81b60;
+            margin-bottom: 20px;
+        }
+        .register-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .register-display:last-of-type {
+            border-bottom: none;
+        }
+        .register-display strong {
+            color: #d81b60;
+        }
+        .input-group {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .input-group label {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        .input-group input {
+            width: 150px;
+            padding: 10px;
+            font-size: 1.5em;
+            text-align: center;
+            border: 2px solid #f8bbd0;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            border-color: #d81b60;
+        }
+        .modal-buttons {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .modal-button {
+            background-color: #d81b60;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .modal-button:hover {
+            background-color: #b71c1c;
+            transform: translateY(-2px);
+        }
+        .modal-button:active {
+            transform: translateY(0);
+        }
+
+        /* Game UI */
+        .game-ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 30;
+        }
+        .ui-item {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #d81b60;
+            display: flex;
+            align-items: center;
+        }
+        .ui-item span {
+            margin-left: 8px;
+            color: #333;
+        }
+
+        /* Message Box */
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background-color: #880e4f; /* Darker pink for messages */
+            color: white;
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            z-index: 60;
+            animation: pop-in 0.4s forwards ease-out;
+        }
+        .message-box.hidden {
+            display: none;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffdce5; /* Very light pink */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease-out;
+        }
+        .start-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .start-screen h1 {
+            font-size: 4em;
+            color: #d81b60;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .start-screen button {
+            background-color: #d81b60;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        .start-screen button:hover {
+            background-color: #b71c1c;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        .start-screen button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Customer's current outfit */
+        .customer-outfit-container {
+            position: absolute;
+            top: 0; /* Align to the top of the customer-body */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px; /* Same width as customer body */
+            height: 150px; /* Same height as customer body */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; /* Don't interfere with dragging */
+            overflow: hidden; /* Ensure clothing stays within bounds */
+        }
+
+        .customer-outfit {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5em; /* Size of clothing emoji */
+            position: absolute; /* Allows overlaying */
+            top: 0;
+            left: 0;
+        }
+
+        /* Visual feedback for correct/incorrect */
+        .feedback-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 255, 0, 0.2); /* Green overlay for correct */
+            border-radius: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 40;
+        }
+
+        .feedback-overlay.correct {
+            background-color: rgba(0, 200, 0, 0.2);
+            opacity: 1;
+        }
+
+        .feedback-overlay.incorrect {
+            background-color: rgba(255, 0, 0, 0.2);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-screen">
+            <h1>Boutique Boss!</h1>
+            <p class="text-xl text-gray-700 mb-8">Help your customers find the perfect outfit and practice your math!</p>
+            <button id="start-button">Start Game</button>
+        </div>
+
+        <!-- Game UI (Score, Money) -->
+        <div class="game-ui">
+            <div class="ui-item">💰 <span id="money-display">0</span></div>
+            <div class="ui-item">⭐ <span id="score-display">0</span></div>
+        </div>
+
+        <!-- Store Area (Draggable Items) -->
+        <div id="store-area" class="store-area">
+            <!-- Items will be dynamically loaded here by JavaScript -->
+        </div>
+
+        <!-- Customer Area (Drop Zone) -->
+        <div id="customer-area" class="customer-area">
+            <div id="customer" class="customer">
+                <div class="customer-head">
+                    <div id="customer-expression" class="customer-expression">😊</div>
+                </div>
+                <div class="customer-body">
+                    <div id="customer-outfit-container" class="customer-outfit-container">
+                        <!-- Outfit will be placed here -->
+                    </div>
+                </div>
+                <div id="speech-bubble" class="speech-bubble hidden">
+                    <span id="speech-text"></span>
+                    <span id="speech-icon" class="speech-bubble-icon"></span>
+                </div>
+            </div>
+            <!-- Feedback Overlay -->
+            <div id="feedback-overlay" class="feedback-overlay rounded-[20px]"></div>
+        </div>
+
+        <!-- Cash Register Modal -->
+        <div id="modal-overlay" class="modal-overlay">
+            <div class="cash-register-modal">
+                <h2>Cash Register</h2>
+                <div class="register-display">
+                    <span>Cost:</span> <strong>$ <span id="cost-display">0.00</span></strong>
+                </div>
+                <div class="register-display">
+                    <span>Item:</span> <span id="item-name-modal"></span>
+                </div>
+                <div class="input-group">
+                    <label for="payment-input">Customer Paid:</label>
+                    <input type="number" id="payment-input" placeholder="0">
+                </div>
+                <div class="register-display mt-4">
+                    <span>Change Due:</span> <strong>$ <span id="change-display">0.00</span></strong>
+                </div>
+                <div class="modal-buttons">
+                    <button id="confirm-payment-button" class="modal-button">Confirm</button>
+                    <button id="cancel-payment-button" class="modal-button bg-gray-500 hover:bg-gray-700">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Box -->
+        <div id="message-box" class="message-box hidden"></div>
+    </div>
+
+    <script>
+        // Game State Variables
+        let currentMoney = 100; // Starting money
+        let score = 0;
+        let currentCustomer = null;
+        let requestedItem = null;
+        let currentDraggedItem = null;
+        let initialMouseX;
+        let initialMouseY;
+        let initialItemX;
+        let initialItemY;
+
+        // HTML Elements
+        const startScreen = document.getElementById('start-screen');
+        const startButton = document.getElementById('start-button');
+        const storeArea = document.getElementById('store-area');
+        const customerArea = document.getElementById('customer-area');
+        const customerEl = document.getElementById('customer');
+        const customerExpressionEl = document.getElementById('customer-expression');
+        const customerOutfitContainer = document.getElementById('customer-outfit-container');
+        const speechBubble = document.getElementById('speech-bubble');
+        const speechText = document.getElementById('speech-text');
+        const speechIcon = document.getElementById('speech-icon');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const costDisplay = document.getElementById('cost-display');
+        const itemNameModal = document.getElementById('item-name-modal');
+        const paymentInput = document.getElementById('payment-input');
+        const changeDisplay = document.getElementById('change-display');
+        const confirmPaymentButton = document.getElementById('confirm-payment-button');
+        const cancelPaymentButton = document.getElementById('cancel-payment-button');
+        const moneyDisplay = document.getElementById('money-display');
+        const scoreDisplay = document.getElementById('score-display');
+        const messageBox = document.getElementById('message-box');
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+
+        // Game Data (Items, Customers)
+        const items = [
+            { id: 'dress', name: 'Dress', price: 15, emoji: '👗' },
+            { id: 'shirt', name: 'Shirt', price: 10, emoji: '👕' },
+            { id: 'pants', name: 'Pants', price: 12, emoji: '👖' },
+            { id: 'shoes', name: 'Shoes', price: 8, emoji: '👟' },
+            { id: 'hat', name: 'Hat', price: 7, emoji: '🎩' },
+            { id: 'skirt', name: 'Skirt', price: 11, emoji: ' skirt' },
+            { id: 'sweater', name: 'Sweater', price: 18, emoji: '🧶' },
+            { id: 'socks', name: 'Socks', price: 5, emoji: '🧦' }
+        ];
+
+        const customers = [
+            { name: 'Alice', requests: ['Dress', 'Shoes'], expression: '😀', color: '#ffb3ba' }, // Light red
+            { name: 'Bob', requests: ['Shirt', 'Pants', 'Hat'], expression: '😊', color: '#bae1ff' }, // Light blue
+            { name: 'Charlie', requests: ['Sweater', 'Socks'], expression: '😇', color: '#baffc9' }, // Light green
+            { name: 'Diana', requests: ['Skirt', 'Shirt', 'Shoes'], expression: '😁', color: '#ffdfba' } // Light orange
+        ];
+
+        // --- Game Initialization ---
+        function initGame() {
+            renderItems();
+            updateUI();
+            startButton.addEventListener('click', startGame);
+        }
+
+        function startGame() {
+            startScreen.classList.add('hidden');
+            setTimeout(spawnNewCustomer, 500); // Small delay before first customer
+        }
+
+        // --- UI Updates ---
+        function updateUI() {
+            moneyDisplay.textContent = currentMoney.toFixed(2);
+            scoreDisplay.textContent = score;
+        }
+
+        function showMessage(message, duration = 2000) {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, duration);
+        }
+
+        function showFeedbackOverlay(type) {
+            feedbackOverlay.classList.remove('correct', 'incorrect');
+            feedbackOverlay.classList.add(type);
+            feedbackOverlay.style.opacity = 1;
+            setTimeout(() => {
+                feedbackOverlay.style.opacity = 0;
+            }, 500);
+        }
+
+        // --- Item Rendering & Drag/Drop Logic ---
+        function renderItems() {
+            storeArea.innerHTML = ''; // Clear previous items
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.classList.add('draggable-item', 'relative');
+                itemEl.setAttribute('data-id', item.id);
+                itemEl.innerHTML = `
+                    <span class="item-icon">${item.emoji}</span>
+                    <span class="item-name">${item.name}</span>
+                    <span class="item-price">$${item.price.toFixed(2)}</span>
+                `;
+                itemEl.style.position = 'relative'; // Ensure positioning context for dragging
+                itemEl.style.left = '0px';
+                itemEl.style.top = '0px';
+
+                itemEl.addEventListener('mousedown', startDrag);
+                storeArea.appendChild(itemEl);
+            });
+        }
+
+        function startDrag(e) {
+            if (e.button !== 0) return; // Only allow left-click
+            currentDraggedItem = e.target.closest('.draggable-item');
+            if (!currentDraggedItem) return;
+
+            // Get initial mouse position
+            initialMouseX = e.clientX;
+            initialMouseY = e.clientY;
+
+            // Get initial item position relative to its parent (storeArea)
+            const rect = currentDraggedItem.getBoundingClientRect();
+            const parentRect = storeArea.getBoundingClientRect();
+            initialItemX = rect.left - parentRect.left;
+            initialItemY = rect.top - parentRect.top;
+
+            // Make the item absolutely positioned for dragging
+            currentDraggedItem.style.position = 'absolute';
+            currentDraggedItem.style.left = initialItemX + 'px';
+            currentDraggedItem.style.top = initialItemY + 'px';
+            currentDraggedItem.style.zIndex = '1000'; // Bring to front
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function drag(e) {
+            if (!currentDraggedItem) return;
+
+            // Calculate new position relative to initial mouse down
+            const dx = e.clientX - initialMouseX;
+            const dy = e.clientY - initialMouseY;
+
+            currentDraggedItem.style.left = (initialItemX + dx) + 'px';
+            currentDraggedItem.style.top = (initialItemY + dy) + 'px';
+        }
+
+        function stopDrag(e) {
+            if (!currentDraggedItem) return;
+
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+
+            const customerRect = customerEl.getBoundingClientRect();
+            const itemRect = currentDraggedItem.getBoundingClientRect();
+
+            // Check if item is dropped on the customer
+            if (itemRect.left < customerRect.right &&
+                itemRect.right > customerRect.left &&
+                itemRect.top < customerRect.bottom &&
+                itemRect.bottom > customerRect.top) {
+                handleDrop(currentDraggedItem);
+            } else {
+                // If not dropped on customer, return to original position
+                resetItemPosition(currentDraggedItem);
+            }
+
+            currentDraggedItem = null;
+        }
+
+        function resetItemPosition(itemEl) {
+            // Restore item to its original flow position in the storeArea
+            itemEl.style.position = 'relative';
+            itemEl.style.left = '0px';
+            itemEl.style.top = '0px';
+            itemEl.style.zIndex = 'auto';
+        }
+
+        function handleDrop(droppedItemEl) {
+            const itemId = droppedItemEl.getAttribute('data-id');
+            const selectedItem = items.find(item => item.id === itemId);
+
+            if (!selectedItem || !requestedItem) {
+                showMessage('Something went wrong. Try again!');
+                resetItemPosition(droppedItemEl);
+                return;
+            }
+
+            if (selectedItem.id === requestedItem.id) {
+                // Correct item
+                customerOutfitContainer.innerHTML = `<span class="customer-outfit">${selectedItem.emoji}</span>`;
+                showMessage('Perfect fit!', 1000);
+                showFeedbackOverlay('correct');
+                openCashRegister(selectedItem);
+            } else {
+                // Incorrect item
+                showMessage(`That's not what I asked for! Try again, I need a ${requestedItem.name}.`, 2500);
+                customerExpressionEl.textContent = '😞'; // Sad face
+                showFeedbackOverlay('incorrect');
+                setTimeout(() => {
+                    customerExpressionEl.textContent = currentCustomer.expression; // Reset expression
+                }, 1000);
+                resetItemPosition(droppedItemEl);
+            }
+        }
+
+        // --- Customer Logic ---
+        function spawnNewCustomer() {
+            // Pick a random customer
+            currentCustomer = customers[Math.floor(Math.random() * customers.length)];
+            customerEl.style.backgroundColor = currentCustomer.color;
+            customerExpressionEl.textContent = currentCustomer.expression;
+            customerOutfitContainer.innerHTML = ''; // Clear previous outfit
+
+            // Pick a random item they request
+            const requestedItemId = currentCustomer.requests[Math.floor(Math.random() * currentCustomer.requests.length)];
+            requestedItem = items.find(item => item.name === requestedItemId);
+
+            if (!requestedItem) {
+                console.error("Requested item not found:", requestedItemId);
+                return; // Prevent errors if item is missing
+            }
+
+            // Animate customer entry
+            customerEl.classList.add('active');
+            setTimeout(() => {
+                showSpeechBubble(`I need a ${requestedItem.name}!`, requestedItem.emoji);
+            }, 800); // Delay speech bubble until customer is in place
+        }
+
+        function showSpeechBubble(text, emoji) {
+            speechText.textContent = text;
+            speechIcon.textContent = emoji;
+            speechBubble.classList.remove('hidden');
+        }
+
+        function hideSpeechBubble() {
+            speechBubble.classList.add('hidden');
+        }
+
+        function customerLeaves() {
+            customerEl.classList.remove('active');
+            hideSpeechBubble();
+            setTimeout(() => {
+                // Reset customer appearance or hide, then spawn new one
+                customerEl.style.backgroundColor = '#fce4ec'; // Reset to default if needed
+                customerExpressionEl.textContent = '😊';
+                spawnNewCustomer();
+            }, 1000); // Wait for customer to slide out
+        }
+
+        // --- Cash Register Logic ---
+        function openCashRegister(item) {
+            costDisplay.textContent = item.price.toFixed(2);
+            itemNameModal.textContent = item.name;
+            paymentInput.value = ''; // Clear previous input
+            changeDisplay.textContent = '0.00';
+            modalOverlay.classList.add('active');
+            paymentInput.focus(); // Focus on input for quick typing
+        }
+
+        paymentInput.addEventListener('input', () => {
+            const cost = parseFloat(costDisplay.textContent);
+            const paid = parseFloat(paymentInput.value);
+            if (!isNaN(paid)) {
+                const change = paid - cost;
+                changeDisplay.textContent = Math.max(0, change).toFixed(2); // Don't show negative change
+            } else {
+                changeDisplay.textContent = '0.00';
+            }
+        });
+
+        confirmPaymentButton.addEventListener('click', () => {
+            const cost = parseFloat(costDisplay.textContent);
+            const paid = parseFloat(paymentInput.value);
+
+            if (isNaN(paid) || paid < cost) {
+                showMessage('Not enough money! Please try again.', 2000);
+                showFeedbackOverlay('incorrect');
+                paymentInput.focus();
+                return;
+            }
+
+            const change = paid - cost;
+            const correctChange = parseFloat(changeDisplay.textContent);
+
+            if (Math.abs(change - correctChange) < 0.01) { // Check for floating point precision
+                currentMoney += cost; // Boutique earns money
+                score++; // Player gains score
+                updateUI();
+                showMessage(`Great job! Your change is $${change.toFixed(2)}`, 2000);
+                customerExpressionEl.textContent = '😁'; // Happy
+                modalOverlay.classList.remove('active');
+                setTimeout(customerLeaves, 2500);
+            } else {
+                showMessage('Hmm, that change isn\'t quite right. Try again!', 2000);
+                showFeedbackOverlay('incorrect');
+                paymentInput.focus();
+            }
+        });
+
+        cancelPaymentButton.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+            showMessage('Transaction cancelled. Customer left unhappy.', 2500);
+            customerExpressionEl.textContent = ' frowning face 😞'; // Unhappy
+            showFeedbackOverlay('incorrect');
+            setTimeout(customerLeaves, 2500); // Customer leaves after cancellation
+        });
+
+        // Initialize game on window load
+        window.onload = initGame;
+    </script>
+</body>
+</html>
