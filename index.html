@@ -198,14 +198,13 @@
             position: absolute;
             top: -120px; /* Adjusted to be higher above customer head */
             left: 50%; /* Center relative to customer */
-            transform: translateX(-50%); /* Center horizontally */
+            transform: translateX(-50%); /* Combined with initial scale 0 */
             background-color: #fff;
             border: 2px solid #333;
             border-radius: 15px;
             padding: 10px 15px;
             font-size: 1.2em;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transform: translateX(-50%) scale(0); /* Combined with initial scale 0 */
             transform-origin: bottom center; /* Pop in from bottom center */
             animation: pop-in 0.3s forwards ease-out;
             z-index: 35; /* Increased z-index to be above phonics */
@@ -264,7 +263,9 @@
         /* Phonics Challenge */
         .phonics-challenge {
             position: absolute;
-            bottom: 20px; /* Positioned relative to fitting area */
+            top: 150px; /* Moved higher up to avoid customer's body/dressed items */
+            left: 50%;
+            transform: translateX(-50%);
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -812,7 +813,7 @@
         const speechBubble = document.getElementById('speech-bubble');
         const speechTextWrapper = document.getElementById('speech-text-wrapper');
         const modalOverlay = document.getElementById('modal-overlay');
-        const cashRegisterModal = document.querySelector('.cash-register-modal'); // Get modal for money area insertion
+        const cashRegisterModal = document.querySelector('.cash-register-modal');
         const costDisplay = document.getElementById('cost-display');
         const itemsPurchasedDisplay = document.getElementById('items-purchased-display');
         const paymentInput = document.getElementById('payment-input');
@@ -827,8 +828,8 @@
         const phonicsWordDisplay = document.getElementById('phonics-word-display');
         const phonicsLettersContainer = document.getElementById('phonics-letters');
         const checkoutArea = document.getElementById('checkout-area');
-        const moneySelectionArea = document.getElementById('money-selection-area'); // New: Money selection area
-        const clearPaymentButton = document.getElementById('clear-payment-button'); // New: Clear payment button
+        const moneySelectionArea = document.getElementById('money-selection-area');
+        const clearPaymentButton = document.getElementById('clear-payment-button');
 
         // Game Data (Items, Customers)
         const items = [
@@ -844,8 +845,8 @@
 
         const customers = [
             { name: 'Alice', requests: ['dress', 'shoes'], expression: '😀', color: '#ffb3ba' },
-            { name: 'Bob', requests: ['shirt', 'pants', 'hat'], expression: '�', color: '#bae1ff' },
-            { name: 'Charlie', requests: ['sweater', 'socks'], expression: '😇', color: '#baffc9' },
+            { name: 'Bob', requests: ['shirt', 'pants', 'hat'], expression: '😊', color: '#bae1ff' },
+            { name: 'Charlie', requests: ['sweater', 'socks'], expression: '�', color: '#baffc9' },
             { name: 'Diana', requests: ['skirt', 'shirt'], expression: '😁', color: '#ffdfba' },
             { name: 'Eve', requests: ['dress', 'hat', 'socks'], expression: '🙂', color: '#c9baff' }
         ];
@@ -1329,6 +1330,8 @@
             const value = parseFloat(e.target.getAttribute('data-value'));
             if (!isNaN(value)) {
                 currentPaymentAmount += value;
+                // Round to 2 decimal places to prevent floating point issues with money
+                currentPaymentAmount = parseFloat(currentPaymentAmount.toFixed(2)); 
                 paymentInput.value = currentPaymentAmount.toFixed(2);
                 updateChangeDisplay();
                 coinSynth.triggerAttackRelease("C6", "16n"); // A smaller coin sound
