@@ -44,7 +44,15 @@
             align-content: flex-start;
             border-right: 5px solid #d81b60; /* Darker pink border on right */
             overflow-y: auto; /* Scroll for many items */
+            position: relative; /* For the title */
         }
+        .store-area-title {
+            position: absolute;
+            top: 15px;
+            width: 100%;
+            text-align: center;
+        }
+
 
         .customer-checkout-area {
             display: flex;
@@ -61,6 +69,13 @@
             overflow: hidden;
             padding-bottom: 20px; /* Space above checkout */
         }
+        .fitting-area-title {
+            position: absolute;
+            top: 15px;
+            width: 100%;
+            text-align: center;
+            z-index: 20; /* Ensure title is above customer */
+        }
 
         .checkout-area {
             height: 120px; /* Fixed height for checkout */
@@ -72,6 +87,13 @@
             font-size: 1.5em;
             color: #333;
             font-weight: bold;
+            position: relative; /* For the title */
+        }
+        .checkout-area-title {
+            position: absolute;
+            top: 15px;
+            width: 100%;
+            text-align: center;
         }
 
         /* Draggable items */
@@ -93,8 +115,7 @@
             text-align: center;
             padding: 5px;
             pointer-events: auto; /* Default */
-            /* Added shelf-like appearance */
-            border-bottom: 3px solid #ccc;
+            border-bottom: 3px solid #ccc; /* Added shelf-like appearance */
         }
         .draggable-item.disabled {
             pointer-events: none; /* Disable dragging */
@@ -210,15 +231,15 @@
             border-top: 10px solid #fff;
             z-index: 2;
         }
-        .speech-bubble-item {
+        .speech-bubble-item-request { /* Renamed for clarity */
             display: flex;
             align-items: center;
             margin-bottom: 5px;
         }
-        .speech-bubble-item:last-child {
+        .speech-bubble-item-request:last-child {
             margin-bottom: 0;
         }
-        .speech-bubble-item .emoji {
+        .speech-bubble-item-request .emoji {
             font-size: 1.8em; /* Larger emoji in bubble */
             margin-right: 8px;
         }
@@ -226,7 +247,7 @@
         /* Phonics Challenge */
         .phonics-challenge {
             position: absolute;
-            bottom: 140px; /* Positioned above checkout area */
+            bottom: 20px; /* Positioned relative to fitting area */
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -277,37 +298,87 @@
             transform: translateY(0);
         }
 
-        /* Customer's current outfit / shopping cart */
-        .customer-outfit-container {
+        /* NEW: Styles for items directly dressed on the customer */
+        .customer-dressed-item {
             position: absolute;
-            top: 50%; /* Position roughly over the customer's body center */
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 150px; /* Wider for multiple items */
-            min-height: 100px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-            background-color: rgba(255,255,255,0.4); /* Slightly transparent background for cart */
-            border-radius: 15px;
-            padding: 5px;
-            pointer-events: none; /* Don't interfere with dragging */
-            overflow-y: auto; /* Allow scrolling if many items */
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
-            transition: all 0.3s ease-in-out;
+            font-size: 3.5em; /* Default size for dressed item emoji */
+            z-index: 12; /* Above customer body, below speech bubble */
+            pointer-events: none; /* Not interactive */
+            transition: all 0.4s ease-out; /* Smooth placement transition */
+            opacity: 0; /* Start hidden for animation */
+            animation: fadeInDress 0.5s forwards ease-out; /* Fade in animation */
         }
-        .customer-outfit-item {
-            width: 60px; /* Larger items in outfit container */
-            height: 60px;
-            font-size: 3em; /* Larger emoji */
+
+        @keyframes fadeInDress {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Positioning for each clothing type on the customer */
+        .customer-dressed-item.hat {
+            top: 50px; /* Adjust based on customer head position */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 4em;
+        }
+        .customer-dressed-item.dress {
+            top: 100px; /* Overlap body for full dress */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 6em; /* Make dress larger to cover more */
+        }
+        .customer-dressed-item.shirt {
+            top: 120px; /* Overlap upper body */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 5em;
+        }
+        .customer-dressed-item.sweater {
+            top: 110px; /* Overlap upper body, slightly higher than shirt */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 5.5em;
+        }
+        .customer-dressed-item.pants {
+            top: 180px; /* Overlap lower body */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 4.5em;
+        }
+        .customer-dressed-item.skirt {
+            top: 170px; /* Overlap lower body, slightly higher than pants */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 5em;
+        }
+        .customer-dressed-item.shoes {
+            bottom: 5px; /* At the bottom of the customer */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%; /* To give space for two shoes */
+            display: flex; /* Use flex to put two emojis side-by-side */
+            justify-content: space-around; /* Distribute shoes */
+            font-size: 3em; /* Size of individual shoe emoji */
+        }
+        /* For shoes and socks, make them appear as two */
+        .customer-dressed-item.shoes::before,
+        .customer-dressed-item.socks::before {
+            content: attr(data-emoji); /* Use data attribute for content */
+            font-size: 1em; /* Inherit font size from parent */
+        }
+        .customer-dressed-item.shoes::after,
+        .customer-dressed-item.socks::after {
+            content: attr(data-emoji);
+            font-size: 1em;
+        }
+        .customer-dressed-item.socks {
+            bottom: 25px; /* Slightly above shoes */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            justify-content: space-around;
+            font-size: 2.5em;
         }
 
 
@@ -554,6 +625,7 @@
 
         <!-- Store Area (Draggable Items) -->
         <div id="store-area" class="store-area">
+            <h3 class="text-2xl font-bold text-pink-700 mb-4 store-area-title">The Boutique</h3>
             <!-- Items will be dynamically loaded here by JavaScript -->
         </div>
 
@@ -561,14 +633,13 @@
         <div class="customer-checkout-area">
             <!-- Customer Fitting Area -->
             <div id="customer-fitting-area" class="customer-fitting-area">
+                <h3 class="text-2xl font-bold text-blue-700 mb-4 fitting-area-title">Customer Fitting Room</h3>
                 <div id="customer" class="customer">
                     <div class="customer-head">
                         <div id="customer-expression" class="customer-expression">😊</div>
                     </div>
                     <div class="customer-body">
-                        <div id="customer-outfit-container" class="customer-outfit-container">
-                            <!-- Collected items will be placed here -->
-                        </div>
+                        <!-- Dressed items will be appended here by JS -->
                     </div>
                     <div id="speech-bubble" class="speech-bubble hidden">
                         <div id="speech-text-wrapper"></div>
@@ -585,7 +656,7 @@
 
             <!-- Checkout Counter Area -->
             <div id="checkout-area" class="checkout-area">
-                Checkout Counter
+                <h3 class="text-2xl font-bold text-green-700 checkout-area-title">Checkout Counter</h3>
             </div>
         </div>
 
@@ -643,10 +714,10 @@
         const startScreen = document.getElementById('start-screen');
         const startButton = document.getElementById('start-button');
         const storeArea = document.getElementById('store-area');
-        const customerArea = document.getElementById('customer-fitting-area'); // Renamed to fitting area
+        const customerFittingArea = document.getElementById('customer-fitting-area'); // Renamed from customerArea for clarity
         const customerEl = document.getElementById('customer');
         const customerExpressionEl = document.getElementById('customer-expression');
-        const customerOutfitContainer = document.getElementById('customer-outfit-container');
+        // const customerOutfitContainer = document.getElementById('customer-outfit-container'); // REMOVED
         const speechBubble = document.getElementById('speech-bubble');
         const speechTextWrapper = document.getElementById('speech-text-wrapper');
         const modalOverlay = document.getElementById('modal-overlay');
@@ -678,7 +749,7 @@
         ];
 
         const customers = [
-            { name: 'Alice', requests: ['dress', 'shoes'], expression: '😀', color: '#ffb3ba' },
+            { name: 'Alice', requests: ['dress', 'shoes'], expression: '�', color: '#ffb3ba' },
             { name: 'Bob', requests: ['shirt', 'pants', 'hat'], expression: '😊', color: '#bae1ff' },
             { name: 'Charlie', requests: ['sweater', 'socks'], expression: '😇', color: '#baffc9' },
             { name: 'Diana', requests: ['skirt', 'shirt'], expression: '😁', color: '#ffdfba' },
@@ -742,7 +813,7 @@
 
         // --- Item Rendering & Drag/Drop Logic ---
         function renderStoreItems() {
-            storeArea.innerHTML = ''; // Clear previous items
+            storeArea.innerHTML = '<h3 class="text-2xl font-bold text-pink-700 mb-4 store-area-title">The Boutique</h3>'; // Clear previous items and add title
             items.forEach(item => {
                 const itemEl = document.createElement('div');
                 itemEl.classList.add('draggable-item');
@@ -839,10 +910,10 @@
                 originalItemInStore.style.top = '0px';
                 originalItemInStore.style.zIndex = 'auto';
             }
-            // If the item dragged was already a copy (e.g., from the cart), remove it.
-            if (itemEl.parentElement && itemEl.parentElement.id === 'customer-outfit-container') {
-                 itemEl.remove();
-            } else if (itemEl.style.position === 'fixed') { // If it was dragged from store and not dropped
+            // If the item dragged was a temporary clone (e.g., if we were cloning for drag), remove it.
+            // In this specific implementation, we are moving the original item, so this path is less critical.
+            // Ensure the dragged item's fixed positioning is reset if it's not dropped correctly.
+             if (itemEl.style.position === 'fixed') { 
                 itemEl.style.position = 'relative';
                 itemEl.style.left = '0px';
                 itemEl.style.top = '0px';
@@ -876,11 +947,12 @@
                     storeItem.classList.add('disabled'); // Add disabled class
                 }
 
-                // Create a small representation in the customer's outfit container (cart)
-                const cartItemEl = document.createElement('div');
-                cartItemEl.classList.add('customer-outfit-item');
-                cartItemEl.innerHTML = selectedItem.emoji;
-                customerOutfitContainer.appendChild(cartItemEl);
+                // NEW: Create and position the dressed item on the customer
+                const dressedItemEl = document.createElement('div');
+                dressedItemEl.classList.add('customer-dressed-item', selectedItem.id); // Add item ID as class for specific styling
+                dressedItemEl.setAttribute('data-emoji', selectedItem.emoji); // Store emoji for pseudo-elements if needed for shoes/socks
+                dressedItemEl.textContent = selectedItem.emoji; // Display the emoji
+                customerEl.appendChild(dressedItemEl); // Append directly to the customer element
 
                 showMessage(`Got the ${selectedItem.name}!`, 1000);
                 showFeedbackOverlay('correct');
@@ -922,7 +994,12 @@
         function spawnNewCustomer() {
             // Reset for new customer
             customerCart = [];
-            customerOutfitContainer.innerHTML = ''; // Clear collected items
+            // REMOVED: customerOutfitContainer.innerHTML = ''; // No longer used for display
+            
+            // Remove all dynamically added dressed items from the previous customer
+            const dressedItems = customerEl.querySelectorAll('.customer-dressed-item');
+            dressedItems.forEach(item => item.remove());
+
             enableAllDraggableItems(); // Ensure all store items are available
 
             // Pick a random customer
@@ -961,7 +1038,7 @@
 
             remainingRequests.forEach((item, index) => {
                 const itemSpan = document.createElement('span');
-                itemSpan.classList.add('speech-bubble-item');
+                itemSpan.classList.add('speech-bubble-item-request'); // Renamed class
                 itemSpan.innerHTML = `<span class="emoji">${item.emoji}</span>${item.name}`;
                 speechTextWrapper.appendChild(itemSpan);
             });
@@ -985,6 +1062,11 @@
                 itemEl.style.pointerEvents = 'auto';
                 itemEl.classList.remove('disabled');
             });
+
+            // Remove all dynamically added dressed items for the leaving customer
+            const dressedItems = customerEl.querySelectorAll('.customer-dressed-item');
+            dressedItems.forEach(item => item.remove());
+
             setTimeout(() => {
                 customerExpressionEl.textContent = '😊'; // Reset to default happy
                 spawnNewCustomer();
@@ -1134,3 +1216,4 @@
     </script>
 </body>
 </html>
+�
