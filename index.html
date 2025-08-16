@@ -7,6 +7,8 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tone.js CDN for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -72,6 +74,13 @@
             font-size: 0.8em;
             text-align: center;
             padding: 5px;
+            pointer-events: auto; /* Default */
+        }
+        .draggable-item.disabled {
+            pointer-events: none; /* Disable dragging */
+            opacity: 0.6;
+            cursor: not-allowed;
+            filter: grayscale(1);
         }
         .draggable-item:active {
             cursor: grabbing;
@@ -148,14 +157,14 @@
             border-radius: 15px;
             padding: 10px 15px;
             font-size: 1.1em;
-            white-space: nowrap;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             transform: scale(0); /* Start hidden */
             transform-origin: bottom left;
             animation: pop-in 0.3s forwards ease-out;
             z-index: 20;
             display: flex;
-            align-items: center;
+            flex-direction: column; /* Allow multiple lines */
+            align-items: flex-start;
         }
 
         .speech-bubble::after {
@@ -181,9 +190,17 @@
             border-top: 10px solid #fff;
             z-index: 2;
         }
-        .speech-bubble-icon {
+        .speech-bubble-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .speech-bubble-item:last-child {
+            margin-bottom: 0;
+        }
+        .speech-bubble-item .emoji {
             font-size: 1.5em;
-            margin-left: 8px;
+            margin-right: 8px;
         }
 
         @keyframes pop-in {
@@ -191,6 +208,93 @@
             80% { transform: scale(1.1); opacity: 1; }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        /* Phonics Challenge */
+        .phonics-challenge {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 25; /* Above customer but below modal */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out;
+        }
+        .phonics-challenge.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .phonics-word-display {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 2em;
+            font-weight: bold;
+            color: #d81b60;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .phonics-letters {
+            display: flex;
+            gap: 10px;
+        }
+        .phonics-letter-button {
+            background-color: #d81b60;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .phonics-letter-button:hover {
+            background-color: #b71c1c;
+            transform: translateY(-2px);
+        }
+        .phonics-letter-button:active {
+            transform: translateY(0);
+        }
+
+        /* Customer's current outfit / shopping cart */
+        .customer-outfit-container {
+            position: absolute;
+            bottom: 5px; /* Position at the bottom of the customer body */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px; /* Wider for multiple items */
+            height: 100px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-end; /* Items stack from bottom */
+            gap: 5px;
+            background-color: rgba(255,255,255,0.3); /* Slightly transparent background for cart */
+            border-radius: 15px;
+            padding: 5px;
+            pointer-events: none; /* Don't interfere with dragging */
+            overflow-y: auto; /* Allow scrolling if many items */
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+        .customer-outfit-item {
+            width: 50px;
+            height: 50px;
+            font-size: 2.5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
 
         /* Cash Register Modal */
         .modal-overlay {
@@ -392,33 +496,6 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        /* Customer's current outfit */
-        .customer-outfit-container {
-            position: absolute;
-            top: 0; /* Align to the top of the customer-body */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px; /* Same width as customer body */
-            height: 150px; /* Same height as customer body */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: none; /* Don't interfere with dragging */
-            overflow: hidden; /* Ensure clothing stays within bounds */
-        }
-
-        .customer-outfit {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 5em; /* Size of clothing emoji */
-            position: absolute; /* Allows overlaying */
-            top: 0;
-            left: 0;
-        }
-
         /* Visual feedback for correct/incorrect */
         .feedback-overlay {
             position: absolute;
@@ -450,7 +527,7 @@
         <!-- Start Screen -->
         <div id="start-screen" class="start-screen">
             <h1>Boutique Boss!</h1>
-            <p class="text-xl text-gray-700 mb-8">Help your customers find the perfect outfit and practice your math!</p>
+            <p class="text-xl text-gray-700 mb-8">Help your customers find the perfect outfit and practice your math, reading, and phonics!</p>
             <button id="start-button">Start Game</button>
         </div>
 
@@ -473,13 +550,17 @@
                 </div>
                 <div class="customer-body">
                     <div id="customer-outfit-container" class="customer-outfit-container">
-                        <!-- Outfit will be placed here -->
+                        <!-- Collected items will be placed here -->
                     </div>
                 </div>
                 <div id="speech-bubble" class="speech-bubble hidden">
-                    <span id="speech-text"></span>
-                    <span id="speech-icon" class="speech-bubble-icon"></span>
+                    <div id="speech-text-wrapper"></div>
                 </div>
+            </div>
+            <!-- Phonics Challenge -->
+            <div id="phonics-challenge" class="phonics-challenge">
+                <div id="phonics-word-display" class="phonics-word-display"></div>
+                <div id="phonics-letters" class="phonics-letters"></div>
             </div>
             <!-- Feedback Overlay -->
             <div id="feedback-overlay" class="feedback-overlay rounded-[20px]"></div>
@@ -490,11 +571,9 @@
             <div class="cash-register-modal">
                 <h2>Cash Register</h2>
                 <div class="register-display">
-                    <span>Cost:</span> <strong>$ <span id="cost-display">0.00</span></strong>
+                    <span>Total Cost:</span> <strong>$ <span id="cost-display">0.00</span></strong>
                 </div>
-                <div class="register-display">
-                    <span>Item:</span> <span id="item-name-modal"></span>
-                </div>
+                <div id="items-purchased-display" class="text-sm text-gray-600 mt-2 mb-4"></div>
                 <div class="input-group">
                     <label for="payment-input">Customer Paid:</label>
                     <input type="number" id="payment-input" placeholder="0">
@@ -518,12 +597,24 @@
         let currentMoney = 100; // Starting money
         let score = 0;
         let currentCustomer = null;
-        let requestedItem = null;
+        let requestedItems = []; // Array of items the current customer wants
+        let customerCart = []; // Items successfully dragged to the customer
         let currentDraggedItem = null;
         let initialMouseX;
         let initialMouseY;
         let initialItemX;
         let initialItemY;
+        let isPhonicsActive = false;
+        let phonicsWord = '';
+        let hiddenPhonicsLetter = '';
+        let hiddenPhonicsIndex = -1;
+
+        // Tone.js Synths for sound effects
+        let correctSynth = new Tone.Synth().toDestination();
+        let incorrectSynth = new Tone.Synth().toDestination();
+        let coinSynth = new Tone.Synth().toDestination();
+        let happyCustomerSynth = new Tone.Synth().toDestination();
+        let unhappyCustomerSynth = new Tone.Synth().toDestination();
 
         // HTML Elements
         const startScreen = document.getElementById('start-screen');
@@ -534,11 +625,10 @@
         const customerExpressionEl = document.getElementById('customer-expression');
         const customerOutfitContainer = document.getElementById('customer-outfit-container');
         const speechBubble = document.getElementById('speech-bubble');
-        const speechText = document.getElementById('speech-text');
-        const speechIcon = document.getElementById('speech-icon');
+        const speechTextWrapper = document.getElementById('speech-text-wrapper'); // New element for speech text
         const modalOverlay = document.getElementById('modal-overlay');
         const costDisplay = document.getElementById('cost-display');
-        const itemNameModal = document.getElementById('item-name-modal');
+        const itemsPurchasedDisplay = document.getElementById('items-purchased-display'); // New for listing items
         const paymentInput = document.getElementById('payment-input');
         const changeDisplay = document.getElementById('change-display');
         const confirmPaymentButton = document.getElementById('confirm-payment-button');
@@ -547,6 +637,9 @@
         const scoreDisplay = document.getElementById('score-display');
         const messageBox = document.getElementById('message-box');
         const feedbackOverlay = document.getElementById('feedback-overlay');
+        const phonicsChallenge = document.getElementById('phonics-challenge');
+        const phonicsWordDisplay = document.getElementById('phonics-word-display');
+        const phonicsLettersContainer = document.getElementById('phonics-letters');
 
         // Game Data (Items, Customers)
         const items = [
@@ -555,26 +648,47 @@
             { id: 'pants', name: 'Pants', price: 12, emoji: '👖' },
             { id: 'shoes', name: 'Shoes', price: 8, emoji: '👟' },
             { id: 'hat', name: 'Hat', price: 7, emoji: '🎩' },
-            { id: 'skirt', name: 'Skirt', price: 11, emoji: ' skirt' },
+            { id: 'skirt', name: 'Skirt', price: 11, emoji: '🩱' }, /* Using swimsuit as skirt icon */
             { id: 'sweater', name: 'Sweater', price: 18, emoji: '🧶' },
             { id: 'socks', name: 'Socks', price: 5, emoji: '🧦' }
         ];
 
         const customers = [
-            { name: 'Alice', requests: ['Dress', 'Shoes'], expression: '😀', color: '#ffb3ba' }, // Light red
-            { name: 'Bob', requests: ['Shirt', 'Pants', 'Hat'], expression: '😊', color: '#bae1ff' }, // Light blue
-            { name: 'Charlie', requests: ['Sweater', 'Socks'], expression: '😇', color: '#baffc9' }, // Light green
-            { name: 'Diana', requests: ['Skirt', 'Shirt', 'Shoes'], expression: '😁', color: '#ffdfba' } // Light orange
+            { name: 'Alice', requests: ['dress', 'shoes'], expression: '😀', color: '#ffb3ba' },
+            { name: 'Bob', requests: ['shirt', 'pants', 'hat'], expression: '😊', color: '#bae1ff' },
+            { name: 'Charlie', requests: ['sweater', 'socks'], expression: '😇', color: '#baffc9' },
+            { name: 'Diana', requests: ['skirt', 'shirt'], expression: '😁', color: '#ffdfba' },
+            { name: 'Eve', requests: ['dress', 'hat', 'socks'], expression: '🙂', color: '#c9baff' }
         ];
+
+        // --- Utility Functions ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
         // --- Game Initialization ---
         function initGame() {
-            renderItems();
+            renderStoreItems();
             updateUI();
             startButton.addEventListener('click', startGame);
+
+            // Set up Tone.js sounds
+            correctSynth.oscillator.type = "sine";
+            incorrectSynth.oscillator.type = "sawtooth";
+            coinSynth.oscillator.type = "triangle";
+            happyCustomerSynth.oscillator.type = "square";
+            unhappyCustomerSynth.oscillator.type = "triangle";
         }
 
-        function startGame() {
+        async function startGame() {
+            // Start Tone.js audio context on user interaction
+            await Tone.start();
+            console.log("Audio context started");
+
             startScreen.classList.add('hidden');
             setTimeout(spawnNewCustomer, 500); // Small delay before first customer
         }
@@ -603,28 +717,39 @@
         }
 
         // --- Item Rendering & Drag/Drop Logic ---
-        function renderItems() {
+        function renderStoreItems() {
             storeArea.innerHTML = ''; // Clear previous items
             items.forEach(item => {
                 const itemEl = document.createElement('div');
-                itemEl.classList.add('draggable-item', 'relative');
+                itemEl.classList.add('draggable-item');
                 itemEl.setAttribute('data-id', item.id);
                 itemEl.innerHTML = `
                     <span class="item-icon">${item.emoji}</span>
                     <span class="item-name">${item.name}</span>
                     <span class="item-price">$${item.price.toFixed(2)}</span>
                 `;
-                itemEl.style.position = 'relative'; // Ensure positioning context for dragging
-                itemEl.style.left = '0px';
-                itemEl.style.top = '0px';
-
                 itemEl.addEventListener('mousedown', startDrag);
                 storeArea.appendChild(itemEl);
+            });
+            disableAllDraggableItems(); // Initially disable dragging until phonics is solved or customer requests appear
+        }
+
+        function enableAllDraggableItems() {
+            document.querySelectorAll('.draggable-item').forEach(itemEl => {
+                itemEl.classList.remove('disabled');
+            });
+        }
+
+        function disableAllDraggableItems() {
+            document.querySelectorAll('.draggable-item').forEach(itemEl => {
+                itemEl.classList.add('disabled');
             });
         }
 
         function startDrag(e) {
-            if (e.button !== 0) return; // Only allow left-click
+            if (e.button !== 0 || currentDraggedItem || isPhonicsActive) return; // Only allow left-click, one item at a time, and not during phonics
+            if (e.target.closest('.draggable-item').classList.contains('disabled')) return; // Don't drag if disabled
+
             currentDraggedItem = e.target.closest('.draggable-item');
             if (!currentDraggedItem) return;
 
@@ -632,14 +757,13 @@
             initialMouseX = e.clientX;
             initialMouseY = e.clientY;
 
-            // Get initial item position relative to its parent (storeArea)
+            // Get initial item position relative to the viewport
             const rect = currentDraggedItem.getBoundingClientRect();
-            const parentRect = storeArea.getBoundingClientRect();
-            initialItemX = rect.left - parentRect.left;
-            initialItemY = rect.top - parentRect.top;
+            initialItemX = rect.left;
+            initialItemY = rect.top;
 
-            // Make the item absolutely positioned for dragging
-            currentDraggedItem.style.position = 'absolute';
+            // Make the item absolutely positioned for dragging (relative to viewport)
+            currentDraggedItem.style.position = 'fixed'; // Use fixed to drag over other elements
             currentDraggedItem.style.left = initialItemX + 'px';
             currentDraggedItem.style.top = initialItemY + 'px';
             currentDraggedItem.style.zIndex = '1000'; // Bring to front
@@ -665,17 +789,17 @@
             document.removeEventListener('mousemove', drag);
             document.removeEventListener('mouseup', stopDrag);
 
-            const customerRect = customerEl.getBoundingClientRect();
+            const customerBodyRect = customerEl.querySelector('.customer-body').getBoundingClientRect();
             const itemRect = currentDraggedItem.getBoundingClientRect();
 
-            // Check if item is dropped on the customer
-            if (itemRect.left < customerRect.right &&
-                itemRect.right > customerRect.left &&
-                itemRect.top < customerRect.bottom &&
-                itemRect.bottom > customerRect.top) {
+            // Check if item is dropped on the customer's body area
+            if (itemRect.left < customerBodyRect.right &&
+                itemRect.right > customerBodyRect.left &&
+                itemRect.top < customerBodyRect.bottom &&
+                itemRect.bottom > customerBodyRect.top) {
                 handleDrop(currentDraggedItem);
             } else {
-                // If not dropped on customer, return to original position
+                // If not dropped on customer, return to original position in store
                 resetItemPosition(currentDraggedItem);
             }
 
@@ -683,68 +807,144 @@
         }
 
         function resetItemPosition(itemEl) {
-            // Restore item to its original flow position in the storeArea
-            itemEl.style.position = 'relative';
-            itemEl.style.left = '0px';
-            itemEl.style.top = '0px';
-            itemEl.style.zIndex = 'auto';
+            // Find the original item element in the store area and reset its style
+            const originalItemInStore = storeArea.querySelector(`[data-id="${itemEl.getAttribute('data-id')}"]`);
+            if (originalItemInStore) {
+                originalItemInStore.style.position = 'relative';
+                originalItemInStore.style.left = '0px';
+                originalItemInStore.style.top = '0px';
+                originalItemInStore.style.zIndex = 'auto';
+            }
+            // If the item dragged was already a copy (e.g., from the cart), remove it.
+            if (itemEl.parentElement && itemEl.parentElement.id === 'customer-outfit-container') {
+                 itemEl.remove();
+            } else if (itemEl.style.position === 'fixed') { // If it was dragged from store and not dropped
+                itemEl.style.position = 'relative';
+                itemEl.style.left = '0px';
+                itemEl.style.top = '0px';
+                itemEl.style.zIndex = 'auto';
+            }
         }
 
         function handleDrop(droppedItemEl) {
             const itemId = droppedItemEl.getAttribute('data-id');
             const selectedItem = items.find(item => item.id === itemId);
 
-            if (!selectedItem || !requestedItem) {
+            if (!selectedItem || !requestedItems.length) {
                 showMessage('Something went wrong. Try again!');
                 resetItemPosition(droppedItemEl);
                 return;
             }
 
-            if (selectedItem.id === requestedItem.id) {
-                // Correct item
-                customerOutfitContainer.innerHTML = `<span class="customer-outfit">${selectedItem.emoji}</span>`;
-                showMessage('Perfect fit!', 1000);
+            // Check if the dropped item is one of the currently requested items AND not already in the cart
+            const isRequested = requestedItems.some(req => req.id === selectedItem.id);
+            const isInCart = customerCart.some(cartItem => cartItem.id === selectedItem.id);
+
+            if (isRequested && !isInCart) {
+                // Correct item! Move it to the customer's cart.
+                customerCart.push(selectedItem);
+                
+                // Remove the original item from the store (or visually hide it)
+                const storeItem = storeArea.querySelector(`[data-id="${selectedItem.id}"]`);
+                if (storeItem) {
+                    storeItem.style.opacity = '0'; // Visually hide it
+                    storeItem.style.pointerEvents = 'none'; // Make it unclickable
+                    storeItem.classList.add('disabled'); // Add disabled class
+                }
+
+                // Create a small representation in the customer's outfit container (cart)
+                const cartItemEl = document.createElement('div');
+                cartItemEl.classList.add('customer-outfit-item');
+                cartItemEl.innerHTML = selectedItem.emoji;
+                customerOutfitContainer.appendChild(cartItemEl);
+
+                showMessage(`Got the ${selectedItem.name}!`, 1000);
                 showFeedbackOverlay('correct');
-                openCashRegister(selectedItem);
-            } else {
+                correctSynth.triggerAttackRelease("C5", "8n"); // Play correct sound
+                customerExpressionEl.textContent = '🙂'; // Slightly happy
+
+                updateCustomerRequestDisplay();
+
+                if (customerCart.length === requestedItems.length) {
+                    // All items collected, proceed to cash register
+                    setTimeout(() => {
+                        showMessage('All items collected! Time to pay!', 1500);
+                        customerExpressionEl.textContent = '😀';
+                        happyCustomerSynth.triggerAttackRelease("G4", "8n"); // Happy sound
+                        openCashRegister();
+                    }, 1200);
+                }
+            } else if (isInCart) {
+                showMessage(`You already have the ${selectedItem.name}!`, 1500);
+                showFeedbackOverlay('incorrect');
+                incorrectSynth.triggerAttackRelease("C3", "8n"); // Play incorrect sound
+                customerExpressionEl.textContent = '🤔'; // Confused
+                resetItemPosition(droppedItemEl); // Return to store
+            }
+            else {
                 // Incorrect item
-                showMessage(`That's not what I asked for! Try again, I need a ${requestedItem.name}.`, 2500);
+                showMessage(`I don't need a ${selectedItem.name} right now.`, 2000);
                 customerExpressionEl.textContent = '😞'; // Sad face
                 showFeedbackOverlay('incorrect');
+                incorrectSynth.triggerAttackRelease("C3", "8n"); // Play incorrect sound
                 setTimeout(() => {
                     customerExpressionEl.textContent = currentCustomer.expression; // Reset expression
                 }, 1000);
-                resetItemPosition(droppedItemEl);
+                resetItemPosition(droppedItemEl); // Return to store
             }
         }
 
         // --- Customer Logic ---
         function spawnNewCustomer() {
+            // Reset for new customer
+            customerCart = [];
+            customerOutfitContainer.innerHTML = ''; // Clear collected items
+            enableAllDraggableItems(); // Ensure all store items are available
+
             // Pick a random customer
             currentCustomer = customers[Math.floor(Math.random() * customers.length)];
             customerEl.style.backgroundColor = currentCustomer.color;
             customerExpressionEl.textContent = currentCustomer.expression;
-            customerOutfitContainer.innerHTML = ''; // Clear previous outfit
-
-            // Pick a random item they request
-            const requestedItemId = currentCustomer.requests[Math.floor(Math.random() * currentCustomer.requests.length)];
-            requestedItem = items.find(item => item.name === requestedItemId);
-
-            if (!requestedItem) {
-                console.error("Requested item not found:", requestedItemId);
-                return; // Prevent errors if item is missing
-            }
+            
+            // Randomly select 1 to 3 items for the customer to request
+            requestedItems = shuffleArray([...currentCustomer.requests]).slice(0, Math.floor(Math.random() * 3) + 1);
+            requestedItems = requestedItems.map(id => items.find(item => item.id === id)); // Get full item objects
 
             // Animate customer entry
             customerEl.classList.add('active');
             setTimeout(() => {
-                showSpeechBubble(`I need a ${requestedItem.name}!`, requestedItem.emoji);
+                // Decide if this customer gets a phonics challenge
+                const applyPhonics = Math.random() < 0.7; // 70% chance for phonics
+                if (applyPhonics && requestedItems.length === 1) { // Only apply to single item requests for simplicity
+                    setupPhonicsChallenge(requestedItems[0]);
+                } else {
+                    updateCustomerRequestDisplay();
+                    enableAllDraggableItems(); // Enable dragging if no phonics
+                }
             }, 800); // Delay speech bubble until customer is in place
         }
 
-        function showSpeechBubble(text, emoji) {
-            speechText.textContent = text;
-            speechIcon.textContent = emoji;
+        function updateCustomerRequestDisplay() {
+            speechTextWrapper.innerHTML = '';
+            let requestText = 'I need ';
+            const remainingRequests = requestedItems.filter(reqItem => !customerCart.some(cartItem => cartItem.id === reqItem.id));
+
+            if (remainingRequests.length === 0) {
+                requestText = 'All items collected! ';
+                hideSpeechBubble(); // Will be replaced by cash register modal
+                return;
+            }
+
+            remainingRequests.forEach((item, index) => {
+                const itemSpan = document.createElement('span');
+                itemSpan.classList.add('speech-bubble-item');
+                itemSpan.innerHTML = `<span class="emoji">${item.emoji}</span>${item.name}`;
+                speechTextWrapper.appendChild(itemSpan);
+            });
+            showSpeechBubble();
+        }
+
+        function showSpeechBubble() {
             speechBubble.classList.remove('hidden');
         }
 
@@ -755,18 +955,98 @@
         function customerLeaves() {
             customerEl.classList.remove('active');
             hideSpeechBubble();
+            // Reset opacities of store items that were hidden
+            document.querySelectorAll('.draggable-item').forEach(itemEl => {
+                itemEl.style.opacity = '1';
+                itemEl.style.pointerEvents = 'auto';
+                itemEl.classList.remove('disabled');
+            });
             setTimeout(() => {
-                // Reset customer appearance or hide, then spawn new one
-                customerEl.style.backgroundColor = '#fce4ec'; // Reset to default if needed
-                customerExpressionEl.textContent = '😊';
+                customerExpressionEl.textContent = '😊'; // Reset to default happy
                 spawnNewCustomer();
             }, 1000); // Wait for customer to slide out
         }
 
+        // --- Phonics Logic ---
+        function setupPhonicsChallenge(item) {
+            isPhonicsActive = true;
+            disableAllDraggableItems(); // Disable dragging during phonics
+            
+            phonicsWord = item.name.toUpperCase();
+            // Choose a random letter to hide, avoiding first and last if possible for easier words
+            let possibleIndices = [];
+            for (let i = 0; i < phonicsWord.length; i++) {
+                if (phonicsWord[i].match(/[A-Z]/)) { // Only hide letters, not spaces or hyphens if any
+                    possibleIndices.push(i);
+                }
+            }
+            if (possibleIndices.length > 0) {
+                 hiddenPhonicsIndex = possibleIndices[Math.floor(Math.random() * possibleIndices.length)];
+            } else { // Fallback if word has no letters
+                hiddenPhonicsIndex = 0;
+            }
+
+            hiddenPhonicsLetter = phonicsWord[hiddenPhonicsIndex];
+            
+            let displayWord = phonicsWord.split('');
+            displayWord[hiddenPhonicsIndex] = '_';
+            phonicsWordDisplay.textContent = displayWord.join('');
+
+            // Generate letter options
+            phonicsLettersContainer.innerHTML = '';
+            let options = [hiddenPhonicsLetter];
+            // Add 3 random incorrect letters
+            while (options.length < 4) {
+                const randomChar = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
+                if (!options.includes(randomChar) && randomChar !== hiddenPhonicsLetter) {
+                    options.push(randomChar);
+                }
+            }
+            shuffleArray(options);
+
+            options.forEach(letter => {
+                const button = document.createElement('button');
+                button.classList.add('phonics-letter-button');
+                button.textContent = letter;
+                button.addEventListener('click', () => checkPhonicsLetter(letter, item.name));
+                phonicsLettersContainer.appendChild(button);
+            });
+
+            phonicsChallenge.classList.add('active');
+            updateCustomerRequestDisplay(); // Show original request text and icons
+        }
+
+        function checkPhonicsLetter(selectedLetter, originalItemName) {
+            if (selectedLetter === hiddenPhonicsLetter) {
+                showMessage('Correct!', 1000);
+                correctSynth.triggerAttackRelease("E5", "8n"); // Phonics correct sound
+                phonicsWordDisplay.textContent = originalItemName.toUpperCase(); // Show full word
+                phonicsChallenge.classList.remove('active');
+                isPhonicsActive = false;
+                enableAllDraggableItems(); // Enable dragging
+                customerExpressionEl.textContent = currentCustomer.expression; // Reset expression
+
+                // Update speech bubble to full word after phonics is solved
+                updateCustomerRequestDisplay();
+
+            } else {
+                showMessage('Oops! Try again.', 1000);
+                showFeedbackOverlay('incorrect');
+                incorrectSynth.triggerAttackRelease("C4", "8n"); // Phonics incorrect sound
+                customerExpressionEl.textContent = '😥'; // Disappointed
+                setTimeout(() => {
+                    customerExpressionEl.textContent = currentCustomer.expression; // Reset expression
+                }, 500);
+            }
+        }
+
         // --- Cash Register Logic ---
-        function openCashRegister(item) {
-            costDisplay.textContent = item.price.toFixed(2);
-            itemNameModal.textContent = item.name;
+        function openCashRegister() {
+            let totalCost = customerCart.reduce((sum, item) => sum + item.price, 0);
+            costDisplay.textContent = totalCost.toFixed(2);
+            
+            itemsPurchasedDisplay.innerHTML = 'Items: ' + customerCart.map(item => item.name).join(', ');
+
             paymentInput.value = ''; // Clear previous input
             changeDisplay.textContent = '0.00';
             modalOverlay.classList.add('active');
@@ -791,24 +1071,27 @@
             if (isNaN(paid) || paid < cost) {
                 showMessage('Not enough money! Please try again.', 2000);
                 showFeedbackOverlay('incorrect');
+                incorrectSynth.triggerAttackRelease("C3", "8n"); // Play incorrect sound
                 paymentInput.focus();
                 return;
             }
 
             const change = paid - cost;
-            const correctChange = parseFloat(changeDisplay.textContent);
+            const displayedChange = parseFloat(changeDisplay.textContent);
 
-            if (Math.abs(change - correctChange) < 0.01) { // Check for floating point precision
+            if (Math.abs(change - displayedChange) < 0.01) { // Check for floating point precision
                 currentMoney += cost; // Boutique earns money
-                score++; // Player gains score
+                score += requestedItems.length; // Score based on number of items sold
                 updateUI();
                 showMessage(`Great job! Your change is $${change.toFixed(2)}`, 2000);
+                coinSynth.triggerAttackRelease("F5", "8n"); // Coin sound for earning money
                 customerExpressionEl.textContent = '😁'; // Happy
                 modalOverlay.classList.remove('active');
                 setTimeout(customerLeaves, 2500);
             } else {
                 showMessage('Hmm, that change isn\'t quite right. Try again!', 2000);
                 showFeedbackOverlay('incorrect');
+                incorrectSynth.triggerAttackRelease("C3", "8n"); // Play incorrect sound
                 paymentInput.focus();
             }
         });
@@ -816,8 +1099,9 @@
         cancelPaymentButton.addEventListener('click', () => {
             modalOverlay.classList.remove('active');
             showMessage('Transaction cancelled. Customer left unhappy.', 2500);
-            customerExpressionEl.textContent = ' frowning face 😞'; // Unhappy
+            customerExpressionEl.textContent = '😞'; // Unhappy
             showFeedbackOverlay('incorrect');
+            unhappyCustomerSynth.triggerAttackRelease("C3", "8n"); // Unhappy customer sound
             setTimeout(customerLeaves, 2500); // Customer leaves after cancellation
         });
 
