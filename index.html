@@ -169,7 +169,10 @@
                 <div id="money-buttons" class="flex flex-wrap justify-center gap-4">
                     <!-- Money buttons will be generated here -->
                 </div>
-                <button onclick="checkMoney()" class="mt-8 arcade-button bg-green-500 text-white shadow-lg">Check Answer</button>
+                <div class="flex gap-4">
+                    <button onclick="checkMoney()" class="mt-8 arcade-button bg-green-500 text-white shadow-lg">Check Answer</button>
+                    <button onclick="resetMoneyGame()" class="mt-8 arcade-button bg-red-500 text-white shadow-lg">Reset</button>
+                </div>
             </div>
             <button onclick="showScreen('main-menu')" class="absolute top-8 left-8 text-blue-600 hover:text-blue-800 text-xl font-bold">&lt; Back to Menu</button>
         </div>
@@ -289,6 +292,11 @@
             } else {
                 showMessage("Not quite. Try again!", 'bg-red-500');
             }
+        }
+        
+        function resetMoneyGame() {
+            moneyChangeEl.textContent = `$0.00`;
+            showMessage("Change reset! Start over.", 'bg-red-500');
         }
 
         // --- Story Scribe Game Logic ---
